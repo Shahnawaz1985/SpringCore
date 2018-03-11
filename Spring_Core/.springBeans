@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beansProjectDescription>
+	<version>1</version>
+	<pluginVersion><![CDATA[3.9.0.201707061730-RELEASE]]></pluginVersion>
+	<configSuffixes>
+		<configSuffix><![CDATA[xml]]></configSuffix>
+	</configSuffixes>
+	<enableImports><![CDATA[false]]></enableImports>
+	<configs>
+		<config>src/main/resources/parent.xml</config>
+		<config>src/main/resources/sample_application_context.xml</config>
+		<config>src/main/resources/child.xml</config>
+		<config>src/main/resources/jdbc_context.xml</config>
+		<config>src/main/resources/spring_tx/jta_transaction_config.xml</config>
+		<config>src/main/resources/spring_tx/annotation_transaction_config.xml</config>
+	</configs>
+	<autoconfigs>
+	</autoconfigs>
+	<configSets>
+	</configSets>
+</beansProjectDescription>

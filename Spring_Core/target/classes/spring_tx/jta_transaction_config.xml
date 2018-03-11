@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:aop="http://www.springframework.org/schema/aop"
+	xmlns:c="http://www.springframework.org/schema/c"
+	xmlns:cache="http://www.springframework.org/schema/cache"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:jdbc="http://www.springframework.org/schema/jdbc"
+	xmlns:jee="http://www.springframework.org/schema/jee"
+	xmlns:jpa="http://www.springframework.org/schema/data/jpa"
+	xmlns:lang="http://www.springframework.org/schema/lang"
+	xmlns:p="http://www.springframework.org/schema/p"
+	xmlns:repository="http://www.springframework.org/schema/data/repository"
+	xmlns:task="http://www.springframework.org/schema/task"
+	xmlns:tx="http://www.springframework.org/schema/tx"
+	xmlns:util="http://www.springframework.org/schema/util"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop-4.3.xsd
+		http://www.springframework.org/schema/cache http://www.springframework.org/schema/cache/spring-cache-4.3.xsd
+		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-4.3.xsd
+		http://www.springframework.org/schema/jdbc http://www.springframework.org/schema/jdbc/spring-jdbc-4.3.xsd
+		http://www.springframework.org/schema/jee http://www.springframework.org/schema/jee/spring-jee-4.3.xsd
+		http://www.springframework.org/schema/data/jpa http://www.springframework.org/schema/data/jpa/spring-jpa-1.8.xsd
+		http://www.springframework.org/schema/lang http://www.springframework.org/schema/lang/spring-lang-4.3.xsd
+		http://www.springframework.org/schema/data/repository http://www.springframework.org/schema/data/repository/spring-repository-1.11.xsd
+		http://www.springframework.org/schema/task http://www.springframework.org/schema/task/spring-task-4.3.xsd
+		http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx-4.3.xsd
+		http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util-4.3.xsd">
+		
+	
+	<bean id="dataSourceA" class="com.atomikos.jdbc.AtomikosDataSourceBean" init-method="init" destroy-method="close">
+		<property name="uniqueResourceName" value="XADBMSA"/>
+		<property name="xaDataSourceClassName" value="com.mysql.jdbc.jdbc2.optional.MysqlXADataSource"/>
+		<property name="xaProperties">
+			<props>
+				<prop key="databaseName">developer</prop>
+				<prop key="user">developer</prop>
+				<prop key="password">developer</prop>
+				<!-- <prop key="hostName">localhost</prop> 
+				<prop key="port">3306</prop>-->
+			</props>
+		</property>
+		<property name="poolSize" value="1"/>
+	</bean>
+	
+	<bean id="dataSourceB" class="com.atomikos.jdbc.AtomikosDataSourceBean" init-method="init" destroy-method="close">
+		<property name="uniqueResourceName" value="XADBMSB"/>
+		<property name="xaDataSourceClassName" value="com.mysql.jdbc.jdbc2.optional.MysqlXADataSource"/>
+		<property name="xaProperties">
+			<props>
+				<prop key="databaseName">world</prop>
+				<prop key="user">developer</prop>
+				<prop key="password">developer</prop>
+				<!-- <prop key="hostName">localhost</prop>
+				<prop key="port">3306</prop> -->
+			</props>
+		</property>
+		<property name="poolSize" value="1"/>
+	</bean>
+	
+	<bean id="emfBase" class="org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean" abstract="true">
+		<property name="jpaVendorAdapter">
+			<bean class="org.springframework.orm.jpa.vendor.HibernateJpaVendorAdapter"/>
+		</property>
+		<property name="packagesToScan" value = "com.bac.datamodel.jpa.jta"/>
+		<property name="jpaProperties">
+			<props>
+				<prop key="hibernate.transaction.factory_class">
+					org.hibernate.engine.transaction.internal.jta.CMTTransactionFactory</prop>
+				<prop key="hibernate.transaction.manager_lookup_class">
+					com.atomikos.icatch.jta.hibernate3.TransactionManagerLookup</prop>
+				 <prop  key="hibernate.transaction.jta.platform">
+					org.hibernate.engine.transaction.jta.platform.internal.BitronixJtaPlatform</prop>
+				<prop key="hibernate.dialect">
+					org.hibernate.dialect.MySQL5Dialect</prop>
+				<prop key="hibernate.max_fetch_depth">3</prop>
+				<prop key="hibernate.jdbc.fetch_size">50</prop>
+				<prop key="hibernate.jdbc.batch_size">10</prop>
+				<prop key="hibernate.show_sql">true</prop>
+			</props>
+		</property>
+	</bean>
+	
+	<bean id="emfA" parent="emfBase">
+		<property name="dataSource" ref="dataSourceA"/>
+		<property name="persistenceUnitName" value="emfA"/>
+	</bean>
+	
+	<bean id="emfB" parent="emfBase">
+		<property name="dataSource" ref="dataSourceB"/>
+		<property name="persistenceUnitName" value="emfB"/>
+	</bean>
+	
+	<tx:annotation-driven transaction-manager="transactionManager"/>
+	
+	<bean id="atomikosTransactionManager" class="com.atomikos.icatch.jta.UserTransactionManager"
+		init-method="init" destroy-method="close">
+		<property name="forceShutdown" value="true"/>		
+	</bean>
+	
+	<bean id="atomikosUserTransaction" class="com.atomikos.icatch.jta.UserTransactionImp">
+		<property name="transactionTimeout" value="300"/>
+	</bean>
+	
+	<bean id="transactionManager" class="org.springframework.transaction.jta.JtaTransactionManager">
+		<property name="transactionManager" ref="atomikosTransactionManager"/>
+		<property name="userTransaction" ref="atomikosUserTransaction"/>
+	</bean>
+	
+	<context:component-scan base-package="com.bac.datamodel.jpa.jta"/>
+</beans>

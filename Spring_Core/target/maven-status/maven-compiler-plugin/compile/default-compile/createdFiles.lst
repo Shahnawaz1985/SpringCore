@@ -1,0 +1,11 @@
+com\bac\jdbc\core\bean\Language.class
+com\bac\jdbc\mapper\LanguageMapper.class
+com\bac\datamodel\jpa\jta\Contact.class
+com\bac\jdbc\core\bean\City.class
+com\bac\di\replacer\ReplacerTest.class
+com\bac\di\lookup\MyHelper.class
+com\bac\di\replacer\ReplacementTarget.class
+com\bac\sample\config\inheritance\SimpleTarget.class
+com\bac\di\lookup\TestInterface.class
+com\bac\di\replacer\MessageReplacer.class
+com\bac\datamodel\jpa\jta\ContactService.class
